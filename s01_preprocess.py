@@ -10,7 +10,7 @@ from src.logger import PyLogger
 logger = PyLogger(log_to_file=False, file_path="cribs")
 
 
-def preprocess_pipeline():
+def preprocess_pipeline(divide_by_type=True):
     """
     Data preprocessing pipeline.
     Gets the raw data and cleans it,
@@ -114,8 +114,20 @@ def preprocess_pipeline():
         f"Preprocessed data with {nrow_clean} rows - {100 * round(nrow_clean / nrow_raw, ndigits=2)}% of the initial dataset."
     )
 
-    # Save preprocessed file
+    # Save preprocessed dataset (all)
     df.write_csv(config.CLEANED_DATA_PATH, separator=",")
+
+    # Divide the cleaned dataset per type
+    if divide_by_type:
+        # Land
+        df_land = df.filter(pl.col("Type") == "Land")
+        df_land.write_csv(config.LAND_DATA_PATH, separator=",")
+        # House
+        df_house = df.filter(pl.col("Type") == "House")
+        df_house.write_csv(config.HOUSE_DATA_PATH, separator=",")
+        # Apartment
+        df_apt = df.filter(pl.col("Type") == "Apartment")
+        df_apt.write_csv(config.APT_DATA_PATH, separator=",")
 
 
 # Run the script

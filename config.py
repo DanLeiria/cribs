@@ -1,2 +1,5 @@
 RAW_DATA_PATH = "data/raw-data.csv"
 CLEANED_DATA_PATH = "data/clean-data.csv"
+LAND_DATA_PATH = "data/land-data.csv"
+HOUSE_DATA_PATH = "data/house-data.csv"
+APT_DATA_PATH = "data/apartment-data.csv"
