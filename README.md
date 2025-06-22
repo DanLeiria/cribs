@@ -2,3 +2,9 @@
 
 ## Summary
 
+
+## Data preprocessing
+    - Remove “empty“ columns
+    - Remove small amount of real estate types
+    - Remove missing values
+    - 
