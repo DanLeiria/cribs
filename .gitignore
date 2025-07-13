@@ -1,6 +1,4 @@
-data/
 logs/
 .vscode
 .venv
 *.pdf
-*.ipynb
