@@ -1,11 +1,10 @@
 # Import libraries
 from sklearn.model_selection import StratifiedKFold, train_test_split
-import pandas as pd
 import os
 import pickle
 
 # Import dependencies
-import config
+from config import CROSS_VAL_DATA_PATH, N_SPLITS, TEST_SIZE, SEED
 from src.logger import PyLogger
 
 # Setup logger
@@ -15,10 +14,10 @@ logger = PyLogger(log_to_file=True, file_path="cribs")
 def split_data_pipeline(
     df,
     strat_col,
-    test_size=0.2,
-    n_splits=5,
-    random_state=42,
-    save_path=config.CROSS_VAL_DATA_PATH,
+    test_size=TEST_SIZE,
+    n_splits=N_SPLITS,
+    random_state=SEED,
+    save_path=CROSS_VAL_DATA_PATH,
 ):
     """
     Test size is 20% of the total size
@@ -50,7 +49,7 @@ def split_data_pipeline(
 
 
 if __name__ == "__main__":
-    with open(config.CROSS_VAL_DATA_PATH, "rb") as f:
+    with open(CROSS_VAL_DATA_PATH, "rb") as f:
         data = pickle.load(f)
 
     folds = data["folds"]

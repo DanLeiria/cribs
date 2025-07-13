@@ -3,14 +3,14 @@ import pandas as pd
 
 # Import dependencies
 import config
-from s01_preprocess import preprocess_pipeline
+from s01_preprocess import preprocess_pipeline_buildings, preprocess_pipeline_land
 from s02_data_split import split_data_pipeline
 
 
 def run_pipelines(dpp=True):
     # Run data preprocessing pipeline
     if dpp:
-        preprocess_pipeline()
+        preprocess_pipeline_land()
 
     # Load cleaned data
     df_land = pd.read_csv(config.LAND_DATA_PATH)
@@ -21,4 +21,4 @@ def run_pipelines(dpp=True):
 
 
 if __name__ == "__main__":
-    run_pipelines()
+    run_pipelines(dpp=False)

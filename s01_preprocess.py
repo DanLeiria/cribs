@@ -282,7 +282,7 @@ def preprocess_pipeline_land():
     ################################
     """This section removes columns that are not needed for further analysis because 
     they have a lot of missing values or are not relevant."""
-    df = df.select(["Price", "District", "City", "AreaAssigned", "Type"])
+    df = df.select(["Price", "District", "City", "AreaAssigned"])
 
     ##############################################
     # -- Remove missing data of assigned area -- #
