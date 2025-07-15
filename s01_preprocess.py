@@ -148,41 +148,37 @@ def preprocess_pipeline_buildings():
         (pl.col("Price") / pl.col("AreaAssigned")).alias("PricePerSqm")
     )
 
-    ###################################
-    # -- Remove outliers using IQR -- #
-    ###################################
-    """This section removes outliers from the dataset based on the Interquartile Range (IQR) method."""
+    #######################################
+    # -- Remove outliers using Z-score -- #
+    #######################################
+    """This section removes outliers from the dataset based
+    on the log z-score method."""
 
-    # Compute group-wise IQR bounds
-    iqr_bounds = (
-        df.group_by(["District", "Type"])
-        .agg(
-            [
-                pl.col("PricePerSqm").quantile(0.25).alias("Q1"),
-                pl.col("PricePerSqm").quantile(0.75).alias("Q3"),
-            ]
-        )
-        .with_columns(  # First compute IQR
-            (pl.col("Q3") - pl.col("Q1")).alias("IQR")
-        )
-        .with_columns(  # Then compute bounds using IQR
-            (pl.col("Q1") - 1.5 * pl.col("IQR")).alias("LowerBound"),
-            (pl.col("Q3") + 1.5 * pl.col("IQR")).alias("UpperBound"),
-        )
-        .select(["District", "Type", "LowerBound", "UpperBound"])
+    # Create log-transformed column of PricePerSqm
+    df = df.with_columns(pl.col("PricePerSqm").log1p().alias("LogPricePerSqm"))
+
+    # Compute group-wise z-score bournds
+    zscore_stats = df.group_by("District").agg(
+        [
+            pl.col("LogPricePerSqm").mean().alias("mean_log"),
+            pl.col("LogPricePerSqm").std().alias("std_log"),
+        ]
     )
 
     # Join bounds back to original data
-    df = df.join(iqr_bounds, on=["District", "Type"], how="left")
+    df = df.join(zscore_stats, on="District", how="left")
 
     # Filter out outliers using IQR
-    df = df.filter(
-        (pl.col("PricePerSqm") >= pl.col("LowerBound"))
-        & (pl.col("PricePerSqm") <= pl.col("UpperBound"))
+    df = df.with_columns(
+        ((pl.col("LogPricePerSqm") - pl.col("mean_log")) / pl.col("std_log")).alias(
+            "zscore_log"
+        )
+    ).filter(
+        pl.col("zscore_log").abs() <= 3  # Threshold for z-score
     )
 
     # Optional: drop the helper bound columns
-    df = df.drop(["LowerBound", "UpperBound"])
+    df = df.drop(["LogPricePerSqm", "mean_log", "std_log", "zscore_log"])
 
     ###################################
     # -- Give regions per District -- #
@@ -229,6 +225,12 @@ def preprocess_pipeline_buildings():
         .alias("EnergyCertificate")
     )
 
+    ###########################
+    # -- Remove duplicates -- #
+    ###########################
+    """This section removes duplicate rows from the dataset to ensure data integrity."""
+    df = df.unique()
+
     #######################
     # -- Final dataset -- #
     #######################
@@ -241,6 +243,13 @@ def preprocess_pipeline_buildings():
 
     # Save preprocessed dataset (all)
     df.write_csv(config.BUILD_DATA_PATH, separator=",")
+
+    # Save preprocessed dataset per real estate type
+    df_house = df.filter(pl.col("Type") == "House")
+    df_apt = df.filter(pl.col("Type") == "Apartment")
+
+    df_house.write_csv(config.HOUSE_DATA_PATH, separator=",")
+    df_apt.write_csv(config.APT_DATA_PATH, separator=",")
 
 
 def preprocess_pipeline_land():
@@ -312,41 +321,37 @@ def preprocess_pipeline_land():
         (pl.col("Price") / pl.col("AreaAssigned")).alias("PricePerSqm")
     )
 
-    ###################################
-    # -- Remove outliers using IQR -- #
-    ###################################
-    """This section removes outliers from the dataset based on the Interquartile Range (IQR) method."""
+    #######################################
+    # -- Remove outliers using Z-score -- #
+    #######################################
+    """This section removes outliers from the dataset based
+    on the log z-score method."""
 
-    # Compute group-wise IQR bounds
-    iqr_bounds = (
-        df.group_by(["City"])
-        .agg(
-            [
-                pl.col("PricePerSqm").quantile(0.25).alias("Q1"),
-                pl.col("PricePerSqm").quantile(0.75).alias("Q3"),
-            ]
-        )
-        .with_columns(  # First compute IQR
-            (pl.col("Q3") - pl.col("Q1")).alias("IQR")
-        )
-        .with_columns(  # Then compute bounds using IQR
-            (pl.col("Q1") - 1.5 * pl.col("IQR")).alias("LowerBound"),
-            (pl.col("Q3") + 1.5 * pl.col("IQR")).alias("UpperBound"),
-        )
-        .select(["City", "LowerBound", "UpperBound"])
+    # Create log-transformed column of PricePerSqm
+    df = df.with_columns(pl.col("PricePerSqm").log1p().alias("LogPricePerSqm"))
+
+    # Compute group-wise z-score bournds
+    zscore_stats = df.group_by("District").agg(
+        [
+            pl.col("LogPricePerSqm").mean().alias("mean_log"),
+            pl.col("LogPricePerSqm").std().alias("std_log"),
+        ]
     )
 
     # Join bounds back to original data
-    df = df.join(iqr_bounds, on=["City"], how="left")
+    df = df.join(zscore_stats, on="District", how="left")
 
     # Filter out outliers using IQR
-    df = df.filter(
-        (pl.col("PricePerSqm") >= pl.col("LowerBound"))
-        & (pl.col("PricePerSqm") <= pl.col("UpperBound"))
+    df = df.with_columns(
+        ((pl.col("LogPricePerSqm") - pl.col("mean_log")) / pl.col("std_log")).alias(
+            "zscore_log"
+        )
+    ).filter(
+        pl.col("zscore_log").abs() <= 3  # Threshold for z-score
     )
 
     # Optional: drop the helper bound columns
-    df = df.drop(["LowerBound", "UpperBound"])
+    df = df.drop(["LogPricePerSqm", "mean_log", "std_log", "zscore_log"])
 
     ###################################
     # -- Give regions per District -- #
@@ -404,6 +409,12 @@ def preprocess_pipeline_land():
     ]
     df = df.filter(~pl.col("District").is_in(removed_district))
 
+    ###########################
+    # -- Remove duplicates -- #
+    ###########################
+    """This section removes duplicate rows from the dataset to ensure data integrity."""
+    df = df.unique()
+
     #######################
     # -- Final dataset -- #
     #######################
@@ -418,32 +429,8 @@ def preprocess_pipeline_land():
     df.write_csv(config.LAND_DATA_PATH, separator=",")
 
 
-def house_dpp_pipeline(df):
-    """
-    Further clean the house dataset
-    """
-    # Log the initial dataset
-    df = df.filter(pl.col("Type") == "House")
-
-    df.write_csv(config.HOUSE_DATA_PATH, separator=",")
-
-
-def apt_dpp_pipeline(df):
-    """
-    Further clean the apartment dataset
-    """
-    # Log the initial dataset
-    df = df.filter(pl.col("Type") == "Apartment")
-
-    df.write_csv(config.APT_DATA_PATH, separator=",")
-
-
 # Run the script
 if __name__ == "__main__":
     # Run the main preprocessing pipeline
     preprocess_pipeline_buildings()
     preprocess_pipeline_land()
-
-    # Separate buildings data by type and save it
-    house_dpp_pipeline(df=pl.read_csv(config.BUILD_DATA_PATH))
-    apt_dpp_pipeline(df=pl.read_csv(config.BUILD_DATA_PATH))

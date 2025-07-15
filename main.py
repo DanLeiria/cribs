@@ -21,4 +21,4 @@ def run_pipelines(dpp=True):
 
 
 if __name__ == "__main__":
-    run_pipelines(dpp=False)
+    run_pipelines(dpp=True)
