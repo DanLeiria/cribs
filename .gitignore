@@ -2,3 +2,4 @@ logs/
 .vscode
 .venv
 *.pdf
+__pycache__/

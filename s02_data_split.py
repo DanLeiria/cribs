@@ -4,7 +4,7 @@ import os
 import pickle
 
 # Import dependencies
-from config import CROSS_VAL_DATA_PATH, N_SPLITS, TEST_SIZE, SEED
+import config
 from src.logger import PyLogger
 
 # Setup logger
@@ -14,16 +14,20 @@ logger = PyLogger(log_to_file=True, file_path="cribs")
 def split_data_pipeline(
     df,
     strat_col,
-    test_size=TEST_SIZE,
-    n_splits=N_SPLITS,
-    random_state=SEED,
-    save_path=CROSS_VAL_DATA_PATH,
+    save_path,
+    test_size=config.TEST_SIZE,
+    n_splits=config.N_SPLITS,
+    random_state=config.SEED,
 ):
     """
     Test size is 20% of the total size
     Number of splits is 5 folds
     Folds stratified by the column "strat_col"
     """
+
+    # Step 0: Remove unnecessary columns
+    df = df.drop(columns=["PricePerSqm"])
+
     # Step 1: Stratified train/test split
     train_val_df, test_df = train_test_split(
         df, test_size=test_size, stratify=df[strat_col], random_state=random_state
@@ -49,7 +53,8 @@ def split_data_pipeline(
 
 
 if __name__ == "__main__":
-    with open(CROSS_VAL_DATA_PATH, "rb") as f:
+    # Test the pipeline
+    with open(config.CROSS_VAL_LAND_PATH, "rb") as f:
         data = pickle.load(f)
 
     folds = data["folds"]

@@ -245,8 +245,8 @@ def preprocess_pipeline_buildings():
     df.write_csv(config.BUILD_DATA_PATH, separator=",")
 
     # Save preprocessed dataset per real estate type
-    df_house = df.filter(pl.col("Type") == "House")
-    df_apt = df.filter(pl.col("Type") == "Apartment")
+    df_house = df.filter(pl.col("Type") == "House").select(pl.exclude("Type"))
+    df_apt = df.filter(pl.col("Type") == "Apartment").select(pl.exclude("Type"))
 
     df_house.write_csv(config.HOUSE_DATA_PATH, separator=",")
     df_apt.write_csv(config.APT_DATA_PATH, separator=",")

@@ -16,6 +16,9 @@ SEED = 42
 ############################
 # --- CROSS-VALIDATION --- #
 ############################
-CROSS_VAL_DATA_PATH = "data/cross-val/folds_data.pkl"
+CROSS_VAL_LAND_PATH = "data/cross-val/folds_land.pkl"
+CROSS_VAL_HOUSE_PATH = "data/cross-val/folds_house.pkl"
+CROSS_VAL_APT_PATH = "data/cross-val/folds_apt.pkl"
+
 N_SPLITS = 5
 TEST_SIZE = 0.2
